@@ -14,16 +14,16 @@ export const useObject = (
   const ref = useIsEqualRef(query, reset);
 
   useEffect(() => {
-    const query = ref.current;
-    if (!query) {
+    const _query = ref.current;
+    if (!_query) {
       setValue(undefined);
       return;
     }
 
-    query.on('value', setValue, setError);
+    _query.on('value', setValue, setError);
 
     return () => {
-      query.off('value', setValue);
+      _query.off('value', setValue);
     };
   }, [ref, setError, setValue]);
 
