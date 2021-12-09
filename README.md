@@ -4,19 +4,7 @@ React Hooks for React Native Firebase
 
 ## Installation
 
-```sh
-npm install react-native-firebase-hooks
-```
-
 ## Usage
-
-```js
-import { multiply } from "react-native-firebase-hooks";
-
-// ...
-
-const result = await multiply(3, 7);
-```
 
 ## Contributing
 
