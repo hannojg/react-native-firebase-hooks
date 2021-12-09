@@ -1,72 +1,66 @@
-import {
-  DocumentData,
-  DocumentReference,
-  DocumentSnapshot,
-  FirestoreError,
-  getDoc,
-  getDocFromCache,
-  getDocFromServer,
-  onSnapshot,
-} from 'firebase/firestore';
 import { useEffect, useMemo } from 'react';
-import { useLoadingValue } from '../util';
-import { snapshotToData, useIsFirestoreRefEqual } from './helpers';
-import {
+import { useIsEqualRef, useLoadingValue } from '../util';
+import { snapshotToData } from './helpers';
+import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import type {
   Data,
   DataOptions,
   DocumentDataHook,
   DocumentHook,
-  GetOptions,
   OnceDataOptions,
   OnceOptions,
   Options,
 } from './types';
-export const useDocument = <T = DocumentData>(
-  docRef?: DocumentReference<T> | null,
+
+export const useDocument = <T = FirebaseFirestoreTypes.DocumentData>(
+  docRef?: FirebaseFirestoreTypes.DocumentReference<T> | null,
   options?: Options
 ): DocumentHook<T> => {
   return useDocumentInternal<T>(true, docRef, options);
 };
 
-export const useDocumentOnce = <T = DocumentData>(
-  docRef?: DocumentReference<T> | null,
+export const useDocumentOnce = <T = FirebaseFirestoreTypes.DocumentData>(
+  docRef?: FirebaseFirestoreTypes.DocumentReference<T> | null,
   options?: OnceOptions
 ): DocumentHook<T> => {
   return useDocumentInternal<T>(false, docRef, options);
 };
 
 export const useDocumentData = <
-  T = DocumentData,
+  T = FirebaseFirestoreTypes.DocumentData,
   IDField extends string = '',
   RefField extends string = ''
 >(
-  docRef?: DocumentReference<T> | null,
+  docRef?: FirebaseFirestoreTypes.DocumentReference<T> | null,
   options?: DataOptions<T>
 ): DocumentDataHook<T, IDField, RefField> => {
   return useDocumentDataInternal<T, IDField, RefField>(true, docRef, options);
 };
 
 export const useDocumentDataOnce = <
-  T = DocumentData,
+  T = FirebaseFirestoreTypes.DocumentData,
   IDField extends string = '',
   RefField extends string = ''
 >(
-  docRef?: DocumentReference<T> | null,
+  docRef?: FirebaseFirestoreTypes.DocumentReference<T> | null,
   options?: OnceDataOptions<T>
 ): DocumentDataHook<T, IDField, RefField> => {
   return useDocumentDataInternal<T, IDField, RefField>(false, docRef, options);
 };
 
-const useDocumentInternal = <T = DocumentData>(
+const useDocumentInternal = <T = FirebaseFirestoreTypes.DocumentData>(
   listen: boolean,
-  docRef?: DocumentReference<T> | null,
+  docRef?: FirebaseFirestoreTypes.DocumentReference<T> | null,
   options?: Options & OnceOptions
 ): DocumentHook<T> => {
   const { error, loading, reset, setError, setValue, value } = useLoadingValue<
-    DocumentSnapshot<T>,
-    FirestoreError
+    FirebaseFirestoreTypes.DocumentSnapshot<T>,
+    Error
   >();
-  const ref = useIsFirestoreRefEqual<DocumentReference<T>>(docRef, reset);
+  const ref = useIsEqualRef<FirebaseFirestoreTypes.DocumentReference<T>>(
+    docRef,
+    reset
+  );
 
   useEffect(() => {
     if (!ref.current) {
@@ -76,46 +70,49 @@ const useDocumentInternal = <T = DocumentData>(
     if (listen) {
       const listener =
         options && options.snapshotListenOptions
-          ? onSnapshot(
-              ref.current,
+          ? ref.current.onSnapshot(
               options.snapshotListenOptions,
               setValue,
               setError
             )
-          : onSnapshot(ref.current, setValue, setError);
+          : ref.current.onSnapshot(setValue, setError);
 
       return () => {
         listener();
       };
     } else {
-      const get = getDocFnFromGetOptions(
-        options ? options.getOptions : undefined
-      );
-
-      get(ref.current).then(setValue).catch(setError);
+      const getOptionsSource = options?.getOptions?.source;
+      ref.current
+        .get(
+          getOptionsSource != null
+            ? {
+                source: getOptionsSource,
+              }
+            : undefined
+        )
+        .then(setValue)
+        .catch(setError);
     }
-  }, [ref.current]);
+    return undefined;
+  }, [listen, options, ref, setError, setValue]);
 
-  const resArray: DocumentHook<T> = [
-    value as DocumentSnapshot<T>,
-    loading,
-    error,
-  ];
-  return useMemo(() => resArray, resArray);
+  return useMemo<DocumentHook<T>>(
+    () => [value, loading, error],
+    [value, loading, error]
+  );
 };
 
 const useDocumentDataInternal = <
-  T = DocumentData,
+  T = FirebaseFirestoreTypes.DocumentData,
   IDField extends string = '',
   RefField extends string = ''
 >(
   listen: boolean,
-  docRef?: DocumentReference<T> | null,
+  docRef?: FirebaseFirestoreTypes.DocumentReference<T> | null,
   options?: DataOptions<T>
 ): DocumentDataHook<T, IDField, RefField> => {
   const idField = options ? options.idField : undefined;
   const refField = options ? options.refField : undefined;
-  const snapshotOptions = options ? options.snapshotOptions : undefined;
   const transform = options ? options.transform : undefined;
   const [snapshot, loading, error] = useDocumentInternal<T>(
     listen,
@@ -125,35 +122,13 @@ const useDocumentDataInternal = <
   const value = useMemo(
     () =>
       (snapshot
-        ? snapshotToData<T>(
-            snapshot,
-            snapshotOptions,
-            idField,
-            refField,
-            transform
-          )
+        ? snapshotToData<T>(snapshot, idField, refField, transform)
         : undefined) as Data<T, IDField, RefField>,
-    [snapshot, snapshotOptions, idField, refField, transform]
+    [snapshot, idField, refField, transform]
   );
 
-  const resArray: DocumentDataHook<T, IDField, RefField> = [
-    value,
-    loading,
-    error,
-  ];
-  return useMemo(() => resArray, resArray);
+  return useMemo<DocumentDataHook<T, IDField, RefField>>(
+    () => [value, loading, error],
+    [value, loading, error]
+  );
 };
-
-function getDocFnFromGetOptions(
-  { source }: GetOptions = { source: 'default' }
-) {
-  switch (source) {
-    default:
-    case 'default':
-      return getDoc;
-    case 'cache':
-      return getDocFromCache;
-    case 'server':
-      return getDocFromServer;
-  }
-}

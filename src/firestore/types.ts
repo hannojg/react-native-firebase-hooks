@@ -1,22 +1,13 @@
-import {
-  DocumentData,
-  DocumentReference,
-  DocumentSnapshot,
-  FirestoreError,
-  QuerySnapshot,
-  SnapshotListenOptions,
-  SnapshotOptions,
-} from 'firebase/firestore';
-import { LoadingHook } from '../util';
+import type { LoadingHook } from '../util';
+import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 
 export type IDOptions<T> = {
   idField?: string;
   refField?: string;
-  snapshotOptions?: SnapshotOptions;
   transform?: (val: any) => T;
 };
 export type Options = {
-  snapshotListenOptions?: SnapshotListenOptions;
+  snapshotListenOptions?: FirebaseFirestoreTypes.SnapshotListenOptions;
 };
 export type DataOptions<T> = Options & IDOptions<T>;
 export type OnceOptions = {
@@ -27,27 +18,27 @@ export type GetOptions = {
 };
 export type OnceDataOptions<T> = OnceOptions & IDOptions<T>;
 export type Data<
-  T = DocumentData,
+  T = FirebaseFirestoreTypes.DocumentData,
   IDField extends string = '',
   RefField extends string = ''
-> = T & Record<IDField, string> & Record<RefField, DocumentReference<T>>;
+> = T &
+  Record<IDField, string> &
+  Record<RefField, FirebaseFirestoreTypes.DocumentReference<T>>;
 
-export type CollectionHook<T = DocumentData> = LoadingHook<
-  QuerySnapshot<T>,
-  FirestoreError
->;
+export type CollectionHook<T = FirebaseFirestoreTypes.DocumentData> =
+  LoadingHook<FirebaseFirestoreTypes.QuerySnapshot<T>, Error>;
 export type CollectionDataHook<
-  T = DocumentData,
+  T = FirebaseFirestoreTypes.DocumentData,
   IDField extends string = '',
   RefField extends string = ''
-> = LoadingHook<Data<T, IDField, RefField>[], FirestoreError>;
+> = LoadingHook<Data<T, IDField, RefField>[], Error>;
 
-export type DocumentHook<T = DocumentData> = LoadingHook<
-  DocumentSnapshot<T>,
-  FirestoreError
+export type DocumentHook<T = FirebaseFirestoreTypes.DocumentData> = LoadingHook<
+  FirebaseFirestoreTypes.DocumentSnapshot<T>,
+  Error
 >;
 export type DocumentDataHook<
-  T = DocumentData,
+  T = FirebaseFirestoreTypes.DocumentData,
   IDField extends string = '',
   RefField extends string = ''
-> = LoadingHook<Data<T, IDField, RefField>, FirestoreError>;
+> = LoadingHook<Data<T, IDField, RefField>, Error>;
