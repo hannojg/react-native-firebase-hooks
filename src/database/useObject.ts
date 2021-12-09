@@ -1,12 +1,14 @@
 import { useEffect, useMemo } from 'react';
 import { snapshotToData, ValOptions } from './helpers';
-import { ObjectHook, ObjectValHook, Val } from './types';
+import type { ObjectHook, ObjectValHook, Val } from './types';
 import { useIsEqualRef, useLoadingValue } from '../util';
-import { DataSnapshot, off, onValue, Query } from 'firebase/database';
+import type { FirebaseDatabaseTypes } from '@react-native-firebase/database';
 
-export const useObject = (query?: Query | null): ObjectHook => {
+export const useObject = (
+  query?: FirebaseDatabaseTypes.Query | null
+): ObjectHook => {
   const { error, loading, reset, setError, setValue, value } = useLoadingValue<
-    DataSnapshot,
+    FirebaseDatabaseTypes.DataSnapshot,
     Error
   >();
   const ref = useIsEqualRef(query, reset);
@@ -18,15 +20,17 @@ export const useObject = (query?: Query | null): ObjectHook => {
       return;
     }
 
-    onValue(query, setValue, setError);
+    query.on('value', setValue, setError);
 
     return () => {
-      off(query, 'value', setValue);
+      query.off('value', setValue);
     };
-  }, [ref.current]);
+  }, [ref, setError, setValue]);
 
-  const resArray: ObjectHook = [value, loading, error];
-  return useMemo(() => resArray, resArray);
+  return useMemo<ObjectHook>(
+    () => [value, loading, error],
+    [value, loading, error]
+  );
 };
 
 export const useObjectVal = <
@@ -34,7 +38,7 @@ export const useObjectVal = <
   KeyField extends string = '',
   RefField extends string = ''
 >(
-  query?: Query | null,
+  query?: FirebaseDatabaseTypes.Query | null,
   options?: ValOptions<T>
 ): ObjectValHook<T, KeyField, RefField> => {
   const keyField = options ? options.keyField : undefined;
@@ -49,10 +53,8 @@ export const useObjectVal = <
     [snapshot, keyField, refField, transform]
   );
 
-  const resArray: ObjectValHook<T, KeyField, RefField> = [
-    value,
-    loading,
-    error,
-  ];
-  return useMemo(() => resArray, resArray);
+  return useMemo<ObjectValHook<T, KeyField, RefField>>(
+    () => [value, loading, error],
+    [value, loading, error]
+  );
 };

@@ -1,24 +1,29 @@
 import { useEffect, useMemo } from 'react';
 import { snapshotToData, ValOptions } from './helpers';
 import useListReducer from './helpers/useListReducer';
-import { ListHook, ListKeysHook, ListValsHook, Val } from './types';
+import type { ListHook, ListKeysHook, ListValsHook, Val } from './types';
 import { useIsEqualRef } from '../util';
-import {
-  DataSnapshot,
-  Query,
-  onChildAdded as firebaseOnChildAdded,
-  onChildChanged as firebaseOnChildChanged,
-  onChildMoved as firebaseOnChildMoved,
-  onChildRemoved as firebaseOnChildRemoved,
-  onValue as firebaseOnValue,
-  off,
-} from 'firebase/database';
+import type { FirebaseDatabaseTypes } from '@react-native-firebase/database';
+import database from '@react-native-firebase/database';
+database().ref().off();
+// import {
+//   DataSnapshot,
+//   Query,
+//   onChildAdded as firebaseOnChildAdded,
+//   onChildChanged as firebaseOnChildChanged,
+//   onChildMoved as firebaseOnChildMoved,
+//   onChildRemoved as firebaseOnChildRemoved,
+//   onValue as firebaseOnValue,
+//   off,
+// } from 'firebase/database';
 
-export const useList = (query?: Query | null): ListHook => {
+export const useList = (
+  query?: FirebaseDatabaseTypes.Query | null
+): ListHook => {
   const [state, dispatch] = useListReducer();
 
   const queryRef = useIsEqualRef(query, () => dispatch({ type: 'reset' }));
-  const ref: Query | null | undefined = queryRef.current;
+  const ref: FirebaseDatabaseTypes.Query | null | undefined = queryRef.current;
 
   useEffect(() => {
     if (!ref) {
@@ -27,24 +32,28 @@ export const useList = (query?: Query | null): ListHook => {
     }
 
     const onChildAdded = (
-      snapshot: DataSnapshot | null,
+      snapshot: FirebaseDatabaseTypes.DataSnapshot | null,
       previousKey?: string | null
     ) => {
       dispatch({ type: 'add', previousKey, snapshot });
     };
 
-    const onChildChanged = (snapshot: DataSnapshot | null) => {
+    const onChildChanged = (
+      snapshot: FirebaseDatabaseTypes.DataSnapshot | null
+    ) => {
       dispatch({ type: 'change', snapshot });
     };
 
     const onChildMoved = (
-      snapshot: DataSnapshot | null,
+      snapshot: FirebaseDatabaseTypes.DataSnapshot | null,
       previousKey?: string | null
     ) => {
       dispatch({ type: 'move', previousKey, snapshot });
     };
 
-    const onChildRemoved = (snapshot: DataSnapshot | null) => {
+    const onChildRemoved = (
+      snapshot: FirebaseDatabaseTypes.DataSnapshot | null
+    ) => {
       dispatch({ type: 'remove', snapshot });
     };
 
@@ -52,12 +61,16 @@ export const useList = (query?: Query | null): ListHook => {
       dispatch({ type: 'error', error });
     };
 
-    const onValue = (snapshots: DataSnapshot[] | null) => {
+    const onValue = (
+      snapshots: FirebaseDatabaseTypes.DataSnapshot[] | null
+    ) => {
       dispatch({ type: 'value', snapshots });
     };
 
-    let childAddedHandler: ReturnType<typeof firebaseOnChildAdded> | undefined;
-    const onInitialLoad = (snapshot: DataSnapshot) => {
+    let childAddedHandler:
+      | ReturnType<FirebaseDatabaseTypes.Query['on']>
+      | undefined;
+    const onInitialLoad = (snapshot: FirebaseDatabaseTypes.DataSnapshot) => {
       const snapshotVal = snapshot.val();
       let childrenToProcess = snapshotVal
         ? Object.keys(snapshot.val()).length
@@ -65,14 +78,14 @@ export const useList = (query?: Query | null): ListHook => {
 
       // If the list is empty then initialise the hook and use the default `onChildAdded` behaviour
       if (childrenToProcess === 0) {
-        childAddedHandler = firebaseOnChildAdded(ref, onChildAdded, onError);
+        childAddedHandler = ref.on('child_added', onChildAdded, onError);
         onValue([]);
       } else {
         // Otherwise, we load the first batch of children all to reduce re-renders
-        const children: DataSnapshot[] = [];
+        const children: FirebaseDatabaseTypes.DataSnapshot[] = [];
 
         const onChildAddedWithoutInitialLoad = (
-          addedChild: DataSnapshot,
+          addedChild: FirebaseDatabaseTypes.DataSnapshot,
           previousKey?: string | null
         ) => {
           if (childrenToProcess > 0) {
@@ -89,40 +102,44 @@ export const useList = (query?: Query | null): ListHook => {
           onChildAdded(addedChild, previousKey);
         };
 
-        childAddedHandler = firebaseOnChildAdded(
-          ref,
+        childAddedHandler = ref.on(
+          'child_added',
           onChildAddedWithoutInitialLoad,
           onError
         );
       }
     };
 
-    firebaseOnValue(ref, onInitialLoad, onError, { onlyOnce: true });
-    const childChangedHandler = firebaseOnChildChanged(
-      ref,
+    ref.on('value', onInitialLoad, onError, { onlyOnce: true });
+    const childChangedHandler = ref.on(
+      'child_changed',
       onChildChanged,
       onError
     );
-    const childMovedHandler = firebaseOnChildMoved(ref, onChildMoved, onError);
-    const childRemovedHandler = firebaseOnChildRemoved(
-      ref,
+    const childMovedHandler = ref.on('child_moved', onChildMoved, onError);
+    const childRemovedHandler = ref.on(
+      'child_removed',
       onChildRemoved,
       onError
     );
 
     return () => {
-      off(ref, 'child_added', childAddedHandler);
-      off(ref, 'child_changed', childChangedHandler);
-      off(ref, 'child_moved', childMovedHandler);
-      off(ref, 'child_removed', childRemovedHandler);
+      ref.off('child_added', childAddedHandler);
+      ref.off('child_changed', childChangedHandler);
+      ref.off('child_moved', childMovedHandler);
+      ref.off('child_removed', childRemovedHandler);
     };
   }, [dispatch, ref]);
 
-  const resArray: ListHook = [state.value.values, state.loading, state.error];
-  return useMemo(() => resArray, resArray);
+  return useMemo<ListHook>(
+    () => [state.value.values, state.loading, state.error],
+    [state.value.values, state.loading, state.error]
+  );
 };
 
-export const useListKeys = (query?: Query | null): ListKeysHook => {
+export const useListKeys = (
+  query?: FirebaseDatabaseTypes.Query | null
+): ListKeysHook => {
   const [snapshots, loading, error] = useList(query);
   const values = useMemo(
     () =>
@@ -131,9 +148,11 @@ export const useListKeys = (query?: Query | null): ListKeysHook => {
         : undefined,
     [snapshots]
   );
-  const resArray: ListKeysHook = [values, loading, error];
 
-  return useMemo(() => resArray, resArray);
+  return useMemo<ListKeysHook>(
+    () => [values, loading, error],
+    [values, loading, error]
+  );
 };
 
 export const useListVals = <
@@ -141,7 +160,7 @@ export const useListVals = <
   KeyField extends string = '',
   RefField extends string = ''
 >(
-  query?: Query | null,
+  query?: FirebaseDatabaseTypes.Query | null,
   options?: ValOptions<T>
 ): ListValsHook<T, KeyField, RefField> => {
   const keyField = options ? options.keyField : undefined;
@@ -158,10 +177,8 @@ export const useListVals = <
     [snapshots, keyField, refField, transform]
   );
 
-  const resArray: ListValsHook<T, KeyField, RefField> = [
-    values,
-    loading,
-    error,
-  ];
-  return useMemo(() => resArray, resArray);
+  return useMemo<ListValsHook<T, KeyField, RefField>>(
+    () => [values, loading, error],
+    [values, loading, error]
+  );
 };

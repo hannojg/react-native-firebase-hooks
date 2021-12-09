@@ -1,9 +1,9 @@
-import { DataSnapshot } from 'firebase/database';
 import { useReducer } from 'react';
+import type { FirebaseDatabaseTypes } from '@react-native-firebase/database';
 
 type KeyValueState = {
   keys?: string[];
-  values?: DataSnapshot[];
+  values?: FirebaseDatabaseTypes.DataSnapshot[];
 };
 
 type ReducerState = {
@@ -15,25 +15,28 @@ type ReducerState = {
 type AddAction = {
   type: 'add';
   previousKey?: string | null;
-  snapshot: DataSnapshot | null;
+  snapshot: FirebaseDatabaseTypes.DataSnapshot | null;
 };
 type ChangeAction = {
   type: 'change';
-  snapshot: DataSnapshot | null;
+  snapshot: FirebaseDatabaseTypes.DataSnapshot | null;
 };
 type EmptyAction = { type: 'empty' };
 type ErrorAction = { type: 'error'; error: Error };
 type MoveAction = {
   type: 'move';
   previousKey?: string | null;
-  snapshot: DataSnapshot | null;
+  snapshot: FirebaseDatabaseTypes.DataSnapshot | null;
 };
 type RemoveAction = {
   type: 'remove';
-  snapshot: DataSnapshot | null;
+  snapshot: FirebaseDatabaseTypes.DataSnapshot | null;
 };
 type ResetAction = { type: 'reset' };
-type ValueAction = { type: 'value'; snapshots: DataSnapshot[] | null };
+type ValueAction = {
+  type: 'value';
+  snapshots: FirebaseDatabaseTypes.DataSnapshot[] | null;
+};
 type ReducerAction =
   | AddAction
   | ChangeAction
@@ -126,7 +129,9 @@ const listReducer = (
   }
 };
 
-const setValue = (snapshots: DataSnapshot[] | null): KeyValueState => {
+const setValue = (
+  snapshots: FirebaseDatabaseTypes.DataSnapshot[] | null
+): KeyValueState => {
   if (!snapshots) {
     return {
       keys: [],
@@ -135,7 +140,7 @@ const setValue = (snapshots: DataSnapshot[] | null): KeyValueState => {
   }
 
   const keys: string[] = [];
-  const values: DataSnapshot[] = [];
+  const values: FirebaseDatabaseTypes.DataSnapshot[] = [];
   snapshots.forEach((snapshot) => {
     if (!snapshot.key) {
       return;
@@ -152,7 +157,7 @@ const setValue = (snapshots: DataSnapshot[] | null): KeyValueState => {
 
 const addChild = (
   currentState: KeyValueState,
-  snapshot: DataSnapshot,
+  snapshot: FirebaseDatabaseTypes.DataSnapshot,
   previousKey?: string | null
 ): KeyValueState => {
   if (!snapshot.key) {
@@ -182,7 +187,7 @@ const addChild = (
 
 const changeChild = (
   currentState: KeyValueState,
-  snapshot: DataSnapshot
+  snapshot: FirebaseDatabaseTypes.DataSnapshot
 ): KeyValueState => {
   if (!snapshot.key) {
     return currentState;
@@ -199,7 +204,7 @@ const changeChild = (
 
 const removeChild = (
   currentState: KeyValueState,
-  snapshot: DataSnapshot
+  snapshot: FirebaseDatabaseTypes.DataSnapshot
 ): KeyValueState => {
   if (!snapshot.key) {
     return currentState;
@@ -217,7 +222,7 @@ const removeChild = (
 
 const moveChild = (
   currentState: KeyValueState,
-  snapshot: DataSnapshot,
+  snapshot: FirebaseDatabaseTypes.DataSnapshot,
   previousKey?: string | null
 ): KeyValueState => {
   // Remove the child from it's previous location
