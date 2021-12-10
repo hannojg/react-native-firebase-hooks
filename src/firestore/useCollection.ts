@@ -28,19 +28,19 @@ export const useCollectionOnce = <T = FirebaseFirestoreTypes.DocumentData>(
 
 export const useCollectionData = <
   T = FirebaseFirestoreTypes.DocumentData,
-  IDField extends string = '',
-  RefField extends string = ''
+  IDField extends string | undefined = undefined,
+  RefField extends string | undefined = undefined
 >(
   query?: FirebaseFirestoreTypes.Query<T> | null,
-  options?: DataOptions<T>
+  options?: DataOptions<T, IDField, RefField>
 ): CollectionDataHook<T, IDField, RefField> => {
   return useCollectionDataInternal<T, IDField, RefField>(true, query, options);
 };
 
 export const useCollectionDataOnce = <
   T = FirebaseFirestoreTypes.DocumentData,
-  IDField extends string = '',
-  RefField extends string = ''
+  IDField extends string | undefined = undefined,
+  RefField extends string | undefined = undefined
 >(
   query?: FirebaseFirestoreTypes.Query<T> | null,
   options?: OnceDataOptions<T>
@@ -101,12 +101,13 @@ const useCollectionInternal = <T = FirebaseFirestoreTypes.DocumentData>(
 
 const useCollectionDataInternal = <
   T = FirebaseFirestoreTypes.DocumentData,
-  IDField extends string = '',
-  RefField extends string = ''
+  IDField extends string | undefined = undefined,
+  RefField extends string | undefined = undefined
 >(
   listen: boolean,
   query?: FirebaseFirestoreTypes.Query<T> | null,
-  options?: DataOptions<T> & OnceDataOptions<T>
+  options?: DataOptions<T, IDField, RefField> &
+    OnceDataOptions<T, IDField, RefField>
 ): CollectionDataHook<T, IDField, RefField> => {
   const idField = options ? options.idField : undefined;
   const refField = options ? options.refField : undefined;
@@ -120,7 +121,12 @@ const useCollectionDataInternal = <
     () =>
       (snapshots
         ? snapshots.docs.map((doc) =>
-            snapshotToData<T>(doc, idField, refField, transform)
+            snapshotToData<T, IDField, RefField>(
+              doc,
+              idField,
+              refField,
+              transform
+            )
           )
         : undefined) as Data<T, IDField, RefField>[],
     [snapshots, idField, refField, transform]

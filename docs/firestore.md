@@ -290,4 +290,4 @@ The `transform` function is passed a single row of a data, so will be called onc
 
 The `transform` function will not receive the `id` or `ref` values referenced in the properties named in the `idField` or `refField` options, nor it is expected to produce them. Either or both, if specified, will be merged afterwards.
 
-If the `transform` function is defined within your React component, it is recomended that you memoize the function to prevent unnecessry renders.
+If the `transform` function is defined within your React component, it is recommended that you memoize the function to prevent unnecessary renders.

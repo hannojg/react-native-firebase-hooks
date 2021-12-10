@@ -28,22 +28,22 @@ export const useDocumentOnce = <T = FirebaseFirestoreTypes.DocumentData>(
 
 export const useDocumentData = <
   T = FirebaseFirestoreTypes.DocumentData,
-  IDField extends string = '',
-  RefField extends string = ''
+  IDField extends string | undefined = undefined,
+  RefField extends string | undefined = undefined
 >(
   docRef?: FirebaseFirestoreTypes.DocumentReference<T> | null,
-  options?: DataOptions<T>
+  options?: DataOptions<T, IDField, RefField>
 ): DocumentDataHook<T, IDField, RefField> => {
   return useDocumentDataInternal<T, IDField, RefField>(true, docRef, options);
 };
 
 export const useDocumentDataOnce = <
   T = FirebaseFirestoreTypes.DocumentData,
-  IDField extends string = '',
-  RefField extends string = ''
+  IDField extends string | undefined = undefined,
+  RefField extends string | undefined = undefined
 >(
   docRef?: FirebaseFirestoreTypes.DocumentReference<T> | null,
-  options?: OnceDataOptions<T>
+  options?: OnceDataOptions<T, IDField, RefField>
 ): DocumentDataHook<T, IDField, RefField> => {
   return useDocumentDataInternal<T, IDField, RefField>(false, docRef, options);
 };
@@ -104,12 +104,12 @@ const useDocumentInternal = <T = FirebaseFirestoreTypes.DocumentData>(
 
 const useDocumentDataInternal = <
   T = FirebaseFirestoreTypes.DocumentData,
-  IDField extends string = '',
-  RefField extends string = ''
+  IDField extends string | undefined = undefined,
+  RefField extends string | undefined = undefined
 >(
   listen: boolean,
   docRef?: FirebaseFirestoreTypes.DocumentReference<T> | null,
-  options?: DataOptions<T>
+  options?: DataOptions<T, IDField, RefField>
 ): DocumentDataHook<T, IDField, RefField> => {
   const idField = options ? options.idField : undefined;
   const refField = options ? options.refField : undefined;
@@ -122,7 +122,12 @@ const useDocumentDataInternal = <
   const value = useMemo(
     () =>
       (snapshot
-        ? snapshotToData<T>(snapshot, idField, refField, transform)
+        ? snapshotToData<T, IDField, RefField>(
+            snapshot,
+            idField,
+            refField,
+            transform
+          )
         : undefined) as Data<T, IDField, RefField>,
     [snapshot, idField, refField, transform]
   );
