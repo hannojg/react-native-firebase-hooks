@@ -1,0 +1,6 @@
+{
+  "name": "react-native-firebase-hooks/firestore",
+  "main": "../lib/commonjs/firestore/index.js",
+  "module": "../lib/module/firestore/index.js",
+  "typings": "../lib/typescript/firestore/index.d.ts"
+}
