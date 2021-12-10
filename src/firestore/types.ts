@@ -41,8 +41,10 @@ export type Data<
       : {})
 > = IDField extends undefined
   ? RefField extends undefined
-    ? T
-    : ResultType
+    ? // Here IDField and RefField are both undefined, so our type is really just the input type T
+      T
+    : // In any other case (ID or Ref possibly null) return the result type
+      ResultType
   : ResultType;
 
 export type CollectionHook<T = FirebaseFirestoreTypes.DocumentData> =
