@@ -1,0 +1,6 @@
+{
+  "name": "react-native-firebase-hooks/auth",
+  "main": "../lib/commonjs/auth/index.js",
+  "module": "../lib/module/auth/index.js",
+  "typings": "../lib/typescript/auth/index.d.ts"
+}

@@ -1,0 +1,6 @@
+{
+  "name": "react-native-firebase-hooks/database",
+  "main": "../lib/commonjs/database/index.js",
+  "module": "../lib/module/database/index.js",
+  "typings": "../lib/typescript/database/index.d.ts"
+}
