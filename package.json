@@ -38,6 +38,7 @@
     "firebase",
     "hooks"
   ],
+  "private": false,
   "repository": "https://github.com/skillnation/react-native-firebase-hooks",
   "author": "Hanno J. Gödecke <die.drei99@yahoo.de> (https://github.com/skillnation)",
   "license": "MIT",
@@ -46,7 +47,8 @@
   },
   "homepage": "https://github.com/skillnation/react-native-firebase-hooks#readme",
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^11.0.0",
