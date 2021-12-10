@@ -32,12 +32,18 @@ export type OnceDataOptions<
 export type Data<
   T = FirebaseFirestoreTypes.DocumentData,
   IDField extends string | undefined = undefined,
-  RefField extends string | undefined = undefined
-> = T &
-  (IDField extends string ? Record<IDField, string> : {}) &
-  (RefField extends string
-    ? Record<RefField, FirebaseFirestoreTypes.DocumentReference<T>>
-    : {});
+  RefField extends string | undefined = undefined,
+  // This is the type used with IDField and RefField merged onto the type
+  ResultType = T &
+    (IDField extends string ? Record<IDField, string> : {}) &
+    (RefField extends string
+      ? Record<RefField, FirebaseFirestoreTypes.DocumentReference<T>>
+      : {})
+> = IDField extends undefined
+  ? RefField extends undefined
+    ? T
+    : ResultType
+  : ResultType;
 
 export type CollectionHook<T = FirebaseFirestoreTypes.DocumentData> =
   LoadingHook<FirebaseFirestoreTypes.QuerySnapshot<T>, Error>;
