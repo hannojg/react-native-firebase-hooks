@@ -1,6 +1,6 @@
 {
   "name": "@skillnation/react-native-firebase-hooks",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "React Hooks for React Native Firebase",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
