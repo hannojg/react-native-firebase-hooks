@@ -1,0 +1,6 @@
+{
+  "name": "react-native-firebase-hooks/storage",
+  "main": "../lib/commonjs/storage/index.js",
+  "module": "../lib/module/storage/index.js",
+  "typings": "../lib/typescript/storage/index.d.ts"
+}
