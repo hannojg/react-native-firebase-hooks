@@ -44,7 +44,7 @@
   "private": false,
   "repository": "https://github.com/skillnation/react-native-firebase-hooks",
   "author": "Hanno J. Gödecke <die.drei99@yahoo.de> (https://github.com/skillnation)",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/skillnation/react-native-firebase-hooks/issues"
   },
