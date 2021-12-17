@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useIsEqualRef, useLoadingValue } from '../util';
 import { snapshotToData } from './helpers';
 import type {
@@ -51,8 +51,11 @@ export const useCollectionDataOnce = <
 const useCollectionInternal = <T = FirebaseFirestoreTypes.DocumentData>(
   listen: boolean,
   query?: FirebaseFirestoreTypes.Query<T> | null,
-  options?: Options & OnceOptions
+  optionsProp?: Options & OnceOptions
 ) => {
+  // we capture the options prop here once, as it is an object that is most likely not memoized
+  // and thus would cause a "loop"-like re-execution of this hook
+  const options = useRef(optionsProp).current;
   const { error, loading, reset, setError, setValue, value } = useLoadingValue<
     FirebaseFirestoreTypes.QuerySnapshot<T>,
     Error

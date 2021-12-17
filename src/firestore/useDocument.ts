@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useIsEqualRef, useLoadingValue } from '../util';
 import { snapshotToData } from './helpers';
 import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
@@ -51,8 +51,11 @@ export const useDocumentDataOnce = <
 const useDocumentInternal = <T = FirebaseFirestoreTypes.DocumentData>(
   listen: boolean,
   docRef?: FirebaseFirestoreTypes.DocumentReference<T> | null,
-  options?: Options & OnceOptions
+  optionsProp?: Options & OnceOptions
 ): DocumentHook<T> => {
+  // we capture the options prop here once, as it is an object that is most likely not memoized
+  // and thus would cause a "loop"-like re-execution of this hook
+  const options = useRef(optionsProp).current;
   const { error, loading, reset, setError, setValue, value } = useLoadingValue<
     FirebaseFirestoreTypes.DocumentSnapshot<T>,
     Error
