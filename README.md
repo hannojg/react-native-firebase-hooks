@@ -4,6 +4,10 @@ React Hooks for React Native Firebase
 
 ## Installation
 
+```
+yarn add @skillnation/react-native-firebase-hooks
+```
+
 ## Usage
 
 ## Contributing
