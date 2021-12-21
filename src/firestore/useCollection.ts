@@ -43,7 +43,7 @@ export const useCollectionDataOnce = <
   RefField extends string | undefined = undefined
 >(
   query?: FirebaseFirestoreTypes.Query<T> | null,
-  options?: OnceDataOptions<T>
+  options?: OnceDataOptions<T, IDField, RefField>
 ): CollectionDataHook<T, IDField, RefField> => {
   return useCollectionDataInternal<T, IDField, RefField>(false, query, options);
 };
