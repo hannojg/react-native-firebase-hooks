@@ -1,10 +1,19 @@
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useDocumentData } from '@skillnation/react-native-firebase-hooks/firestore';
+import firestore from '@react-native-firebase/firestore';
 
 export default function App() {
+  const [product, loading, error] = useDocumentData(
+    firestore().collection('products').doc('productA')
+  );
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+      {loading && <ActivityIndicator />}
+      {error && <Text>{error.message}</Text>}
+      {product && <Text>{product.name}</Text>}
       <StatusBar style="auto" />
     </View>
   );
