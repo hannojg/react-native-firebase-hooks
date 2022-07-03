@@ -6,9 +6,13 @@ import firestore from '@react-native-firebase/firestore';
 
 export default function App() {
   const [product, loading, error] = useDocumentData(
-    firestore().collection('products').doc('productA')
+    firestore().collection('products').doc('productA'),
+    {
+      snapshotListenOptions: { includeMetadataChanges: true },
+    }
   );
 
+  console.log({ product, loading, error });
   return (
     <View style={styles.container}>
       {loading && <ActivityIndicator />}
