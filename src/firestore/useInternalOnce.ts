@@ -8,6 +8,12 @@ import type {
 } from './types';
 import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 
+/**
+ * Common abstraction for useDocument*Once and useCollection*Once.
+ * It's not recommended using it directly, please use the documented hooks.
+ * @param query
+ * @param options
+ */
 export const useInternalOnce = <
   T = FirebaseFirestoreTypes.DocumentData,
   ReturnTypeHook extends CollectionOnceHook<T> | DocumentOnceHook<T> =
@@ -71,13 +77,13 @@ export const useInternalOnce = <
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref.current]);
 
-  // @ts-expect-error No idea how to make that work in TS
-  const resArray: ReturnTypeHook = [
+  const resArray = [
     value,
     loading,
     error,
     () => loadData(ref.current, options),
   ];
+  // @ts-expect-error No idea how to make that work in TS
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(() => resArray, resArray);
+  return useMemo<ReturnTypeHook>(() => resArray, resArray);
 };
