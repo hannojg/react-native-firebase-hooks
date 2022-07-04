@@ -1,4 +1,4 @@
-# react-native-firebase-hooks
+# 🔥⚓️ react-native-firebase-hooks
 
 React Hooks for React Native Firebase
 
