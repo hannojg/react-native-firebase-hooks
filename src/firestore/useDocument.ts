@@ -97,7 +97,9 @@ const useDocumentInternal = <T = FirebaseFirestoreTypes.DocumentData>(
         .catch(setError);
     }
     return undefined;
-  }, [listen, options, ref, setError, setValue]);
+    // we need to use ref.current here explicitly
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listen, options, ref.current, setError, setValue]);
 
   return useMemo<DocumentHook<T>>(
     () => [value, loading, error],

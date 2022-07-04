@@ -68,7 +68,7 @@ const useCollectionInternal = <T = FirebaseFirestoreTypes.DocumentData>(
       return;
     }
     if (listen) {
-      const listener =
+      const unsubscribe =
         options && options.snapshotListenOptions
           ? ref.current.onSnapshot(
               options.snapshotListenOptions,
@@ -78,7 +78,7 @@ const useCollectionInternal = <T = FirebaseFirestoreTypes.DocumentData>(
           : ref.current.onSnapshot(setValue, setError);
 
       return () => {
-        listener();
+        unsubscribe();
       };
     } else {
       const getOptionsSource = options?.getOptions?.source;
@@ -94,7 +94,9 @@ const useCollectionInternal = <T = FirebaseFirestoreTypes.DocumentData>(
         .catch(setError);
     }
     return undefined;
-  }, [listen, options, ref, setError, setValue]);
+    // we need to use ref.current here explicitly
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listen, options, ref.current, setError, setValue]);
 
   return useMemo<CollectionHook<T>>(
     () => [value, loading, error],
