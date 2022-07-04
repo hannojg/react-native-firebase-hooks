@@ -35,7 +35,9 @@ export const App: React.FC = () => {
 
 ### Documentation
 
-The API is exactly the same as [react-firebase-hooks](https://github.com/CSFrequency/react-firebase-hooks).
+⚠️ These doc links redirect to [`react-firebase-hooks`](https://github.com/CSFrequency/react-firebase-hooks).
+
+The API is exactly the same as [`react-firebase-hooks`](https://github.com/CSFrequency/react-firebase-hooks).
 Only the imports are different:
 
 ```diff
@@ -43,18 +45,18 @@ Only the imports are different:
 + import {} from '@skillnation/react-native-firebase-hooks/MODULE_NAME'
 ```
 
-- [Authentication Hooks](https://github.com/CSFrequency/react-firebase-hooks/tree/master/auth)
-- [Cloud Firestore Hooks](https://github.com/CSFrequency/react-firebase-hooks/tree/master/firestore)
-- [Cloud Functions Hooks](https://github.com/CSFrequency/react-firebase-hooks/tree/master/functions)
-- [Cloud Messaging Hooks](https://github.com/CSFrequency/react-firebase-hooks/tree/master/messaging)
-- [Cloud Storage Hooks](https://github.com/CSFrequency/react-firebase-hooks/tree/master/storage)
-- [Realtime Database Hooks](https://github.com/CSFrequency/react-firebase-hooks/tree/master/database)
+- [Authentication Hooks](https://github.com/CSFrequency/react-firebase-hooks/tree/v4.0.2/auth)
+- [Cloud Firestore Hooks](https://github.com/CSFrequency/react-firebase-hooks/tree/v4.0.2/firestore)
+- [Cloud Functions Hooks](https://github.com/CSFrequency/react-firebase-hooks/tree/v4.0.2/functions)
+- [Cloud Messaging Hooks](https://github.com/CSFrequency/react-firebase-hooks/tree/v4.0.2/messaging)
+- [Cloud Storage Hooks](https://github.com/CSFrequency/react-firebase-hooks/tree/v4.0.2/storage)
+- [Realtime Database Hooks](https://github.com/CSFrequency/react-firebase-hooks/tree/v4.0.2/database)
 
 ## Why use this instead of react-firebase-hooks?
 
-`react-firebase-hooks` is [incompatible](https://github.com/CSFrequency/react-firebase-hooks/issues/181#issue-1046383491) with the latest versions of `react-native-firebase`, especially from a types perspective.
-This works internally the mostly the same as react-firebase-hooks.
-So you really only want to use that for react native.
+`react-firebase-hooks` is [incompatible](https://github.com/CSFrequency/react-firebase-hooks/issues/181#issue-1046383491) with the latest versions of [`react-native-firebase`](https://rnfirebase.io/), especially from a types perspective.
+This library works internally mostly the same as react-firebase-hooks.
+So you really only want to use this lib for react-native if you are using [`react-native-firebase`](https://rnfirebase.io/).
 
 ## Contributing
 
