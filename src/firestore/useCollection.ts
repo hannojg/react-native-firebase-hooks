@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useIsEqualRef, useLoadingValue } from '../util';
 import { snapshotToData } from './helpers';
 import type {
@@ -13,6 +13,7 @@ import type {
   Options,
 } from './types';
 import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import { useInternalOnce } from './useInternalOnce';
 
 export const useCollection = <T = FirebaseFirestoreTypes.DocumentData>(
   query?: FirebaseFirestoreTypes.Query<T> | null,
@@ -54,60 +55,7 @@ export const useCollection = <T = FirebaseFirestoreTypes.DocumentData>(
 export const useCollectionOnce = <T = FirebaseFirestoreTypes.DocumentData>(
   query?: FirebaseFirestoreTypes.Query<T> | null,
   options?: Options & OnceOptions
-) => {
-  const { error, loading, reset, setError, setValue, value } = useLoadingValue<
-    FirebaseFirestoreTypes.QuerySnapshot<T>,
-    Error
-  >();
-  let effectActive = useRef(true);
-  const ref = useIsEqualRef<FirebaseFirestoreTypes.Query<T>>(query, reset);
-
-  const loadData = async (
-    queryArg?: FirebaseFirestoreTypes.Query<T> | null,
-    optionsArg?: Options & OnceOptions
-  ) => {
-    if (!queryArg) {
-      setValue(undefined);
-      return;
-    }
-
-    const getOptionsSource = optionsArg?.getOptions?.source;
-    try {
-      const result = await queryArg.get(
-        getOptionsSource != null
-          ? {
-              source: getOptionsSource,
-            }
-          : undefined
-      );
-      if (effectActive.current) {
-        setValue(result);
-      }
-    } catch (e) {
-      if (effectActive.current) {
-        setError(e as Error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    loadData(ref.current, options);
-
-    return () => {
-      effectActive.current = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ref.current]);
-
-  const resArray: CollectionOnceHook<T> = [
-    value,
-    loading,
-    error,
-    () => loadData(ref.current, options),
-  ];
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(() => resArray, resArray);
-};
+) => useInternalOnce<T, CollectionOnceHook<T>>(query, options);
 
 export const useCollectionData = <
   T = FirebaseFirestoreTypes.DocumentData,

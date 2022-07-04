@@ -13,6 +13,7 @@ import type {
   Options,
   OnceDataOptions,
 } from './types';
+import { useInternalOnce } from './useInternalOnce';
 
 export const useDocument = <T = FirebaseFirestoreTypes.DocumentData>(
   docRef?: FirebaseFirestoreTypes.DocumentReference<T> | null,
@@ -61,63 +62,7 @@ export const useDocument = <T = FirebaseFirestoreTypes.DocumentData>(
 export const useDocumentOnce = <T = FirebaseFirestoreTypes.DocumentData>(
   docRef?: FirebaseFirestoreTypes.DocumentReference<T> | null,
   options?: Options & OnceOptions
-) => {
-  const { error, loading, reset, setError, setValue, value } = useLoadingValue<
-    FirebaseFirestoreTypes.DocumentSnapshot<T>,
-    Error
-  >();
-  let effectActive = useRef(true);
-  const ref = useIsEqualRef<FirebaseFirestoreTypes.DocumentReference<T>>(
-    docRef,
-    reset
-  );
-
-  const loadData = async (
-    queryArg?: FirebaseFirestoreTypes.DocumentReference<T> | null,
-    optionsArg?: Options & OnceOptions
-  ) => {
-    if (!queryArg) {
-      setValue(undefined);
-      return;
-    }
-
-    const getOptionsSource = optionsArg?.getOptions?.source;
-    try {
-      const result = await queryArg.get(
-        getOptionsSource != null
-          ? {
-              source: getOptionsSource,
-            }
-          : undefined
-      );
-      if (effectActive.current) {
-        setValue(result);
-      }
-    } catch (e) {
-      if (effectActive.current) {
-        setError(e as Error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    loadData(ref.current, options);
-
-    return () => {
-      effectActive.current = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ref.current]);
-
-  const resArray: DocumentOnceHook<T> = [
-    value,
-    loading,
-    error,
-    () => loadData(ref.current, options),
-  ];
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(() => resArray, resArray);
-};
+) => useInternalOnce<T, DocumentOnceHook<T>>(docRef, options);
 
 export const useDocumentData = <
   T = FirebaseFirestoreTypes.DocumentData,
