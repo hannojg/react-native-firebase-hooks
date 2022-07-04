@@ -87,4 +87,4 @@ export type DocumentDataOnceHook<
   T = FirebaseFirestoreTypes.DocumentData,
   IDField extends string | undefined = undefined,
   RefField extends string | undefined = undefined
-> = [...DocumentDataHook<T, IDField, RefField>, () => Promise<void>];
+> = [...DocumentDataHook<T, IDField, RefField>];

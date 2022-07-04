@@ -16,11 +16,8 @@ import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 
 export const useCollection = <T = FirebaseFirestoreTypes.DocumentData>(
   query?: FirebaseFirestoreTypes.Query<T> | null,
-  optionsProp?: Options
+  options?: Options
 ) => {
-  // we capture the options prop here once, as it is an object that is most likely not memoized
-  // and thus would cause a "loop"-like re-execution of this hook
-  const options = useRef(optionsProp).current;
   const { error, loading, reset, setError, setValue, value } = useLoadingValue<
     FirebaseFirestoreTypes.QuerySnapshot<T>,
     Error
@@ -46,7 +43,7 @@ export const useCollection = <T = FirebaseFirestoreTypes.DocumentData>(
     };
     // we need to use ref.current here explicitly
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options, ref.current, setError, setValue]);
+  }, [ref.current, setError, setValue]);
 
   return useMemo<CollectionHook<T>>(
     () => [value, loading, error],
