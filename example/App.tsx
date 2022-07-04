@@ -1,51 +1,21 @@
 import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import {
-  ActivityIndicator,
-  Button,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { useCollectionData } from '@skillnation/react-native-firebase-hooks/firestore';
-import firestore from '@react-native-firebase/firestore';
+import { NavigationContainer } from '@react-navigation/native';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import ChangeQuery from './src/ChangeQuery';
+import { Basic_useDocumentData } from './src/Basic_useDocumentData';
 
-type Product = {
-  name: string;
-};
+const Drawer = createDrawerNavigator();
 
 export default function App() {
-  const [collectionName, setCollectionName] = React.useState('invalid');
-
-  const [products, loading, error] = useCollectionData<Product>(
-    firestore().collection(collectionName),
-    {
-      snapshotListenOptions: { includeMetadataChanges: true },
-    }
-  );
-
-  console.log({ product: products, loading, error });
   return (
-    <View style={styles.container}>
-      <Button
-        title={'Change state impacting firebase loading'}
-        onPress={() => setCollectionName('products')}
-      />
-      {loading && <ActivityIndicator />}
-      {error && <Text>{error.message}</Text>}
-      {products &&
-        products.length > 0 &&
-        products.map((product, i) => <Text key={i}>{product.name}</Text>)}
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Drawer.Navigator>
+        <Drawer.Screen
+          name={'Basic_useDocumentData'}
+          component={Basic_useDocumentData}
+        />
+        <Drawer.Screen name={'ChangeQuery'} component={ChangeQuery} />
+      </Drawer.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
