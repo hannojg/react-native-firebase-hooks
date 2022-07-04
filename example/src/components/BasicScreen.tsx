@@ -2,8 +2,11 @@ import React, { PropsWithChildren } from 'react';
 import { LoadingHook } from '@skillnation/react-native-firebase-hooks/util';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-type Props<T extends any> = {
-  hookData: LoadingHook<T, any>;
+type Props<
+  T extends any,
+  HookData extends LoadingHook<T, any> = LoadingHook<T, any>
+> = {
+  hookData: HookData | [...HookData, () => Promise<void>];
   transformData?: (data: T) => any;
 };
 
