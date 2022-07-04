@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useIsEqualRef, useLoadingValue } from '../util';
 import type {
   CollectionOnceHook,
@@ -37,7 +37,7 @@ export const useInternalOnce = <
     ValueType,
     Error
   >();
-  let effectActive = useRef(true);
+  let effectActive = true;
   const ref = useIsEqualRef<QueryType>(query, reset);
 
   const loadData = async (
@@ -58,11 +58,11 @@ export const useInternalOnce = <
             }
           : undefined
       );
-      if (effectActive.current) {
+      if (effectActive) {
         setValue(result as ValueType); // TODO: can we improve on this as cast?
       }
     } catch (e) {
-      if (effectActive.current) {
+      if (effectActive) {
         setError(e as Error);
       }
     }
@@ -72,9 +72,9 @@ export const useInternalOnce = <
     loadData(ref.current, options);
 
     return () => {
-      effectActive.current = false;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      effectActive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref.current]);
 
   const resArray = [

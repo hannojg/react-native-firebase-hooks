@@ -5,7 +5,7 @@ import firestore from '@react-native-firebase/firestore';
 import { Product } from './types';
 import { BasicScreen } from './components/BasicScreen';
 
-export default function ChangeQuery() {
+export default function ChangeQuery_useCollectionData() {
   const [collectionName, setCollectionName] = React.useState('invalid');
 
   const hookData = useCollectionData<Product>(
