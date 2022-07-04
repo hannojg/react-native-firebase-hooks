@@ -1,13 +1,19 @@
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import { LoadingHook } from '@skillnation/react-native-firebase-hooks/util';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 type Props<T extends any> = {
   hookData: LoadingHook<T, any>;
+  transformData?: (data: T) => any;
 };
 
-export const BasicScreen = <T extends any = any>({ hookData }: Props<T>) => {
-  const [data, isLoading, isError] = hookData;
+export const BasicScreen = <T extends any = any>({
+  hookData,
+  transformData,
+  children,
+}: PropsWithChildren<Props<T>>) => {
+  let [_data, isLoading, isError] = hookData;
+  const data = transformData && _data ? transformData(_data) : _data;
 
   const content = (() => {
     if (isLoading) return <ActivityIndicator />;
@@ -16,7 +22,12 @@ export const BasicScreen = <T extends any = any>({ hookData }: Props<T>) => {
     return <Text>{JSON.stringify(data, null, 2)}</Text>;
   })();
 
-  return <View style={styles.container}>{content}</View>;
+  return (
+    <View style={styles.container}>
+      {content}
+      {children}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
