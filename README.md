@@ -26,7 +26,7 @@ export const App: React.FC = () => {
     firestore().collection<Product>('products')
   );
 
-  if (loading) return <LoadingComponent />
+  if (isLoading) return <LoadingComponent />
   if (error) return <ErrorComponent error={error} />
   return <ProductList products={products} />;
 };
