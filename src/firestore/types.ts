@@ -49,18 +49,42 @@ export type Data<
 
 export type CollectionHook<T = FirebaseFirestoreTypes.DocumentData> =
   LoadingHook<FirebaseFirestoreTypes.QuerySnapshot<T>, Error>;
+
+export type CollectionOnceHook<T = FirebaseFirestoreTypes.DocumentData> = [
+  ...CollectionHook<T>,
+  () => Promise<void>
+];
+
 export type CollectionDataHook<
   T = FirebaseFirestoreTypes.DocumentData,
   IDField extends string | undefined = undefined,
   RefField extends string | undefined = undefined
 > = LoadingHook<Data<T, IDField, RefField>[], Error>;
 
+export type CollectionDataOnceHook<
+  T = FirebaseFirestoreTypes.DocumentData,
+  IDField extends string | undefined = undefined,
+  RefField extends string | undefined = undefined
+> = [...CollectionDataHook<T, IDField, RefField>];
+
 export type DocumentHook<T = FirebaseFirestoreTypes.DocumentData> = LoadingHook<
   FirebaseFirestoreTypes.DocumentSnapshot<T>,
   Error
 >;
+
+export type DocumentOnceHook<T = FirebaseFirestoreTypes.DocumentData> = [
+  ...DocumentHook<T>,
+  () => Promise<void>
+];
+
 export type DocumentDataHook<
   T = FirebaseFirestoreTypes.DocumentData,
   IDField extends string | undefined = undefined,
   RefField extends string | undefined = undefined
 > = LoadingHook<Data<T, IDField, RefField>, Error>;
+
+export type DocumentDataOnceHook<
+  T = FirebaseFirestoreTypes.DocumentData,
+  IDField extends string | undefined = undefined,
+  RefField extends string | undefined = undefined
+> = [...DocumentDataHook<T, IDField, RefField>, () => Promise<void>];

@@ -3,7 +3,9 @@ import { useIsEqualRef, useLoadingValue } from '../util';
 import { snapshotToData } from './helpers';
 import type {
   CollectionDataHook,
+  CollectionDataOnceHook,
   CollectionHook,
+  CollectionOnceHook,
   Data,
   DataOptions,
   OnceDataOptions,
@@ -14,44 +16,7 @@ import type { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 
 export const useCollection = <T = FirebaseFirestoreTypes.DocumentData>(
   query?: FirebaseFirestoreTypes.Query<T> | null,
-  options?: Options
-): CollectionHook<T> => {
-  return useCollectionInternal<T>(true, query, options);
-};
-
-export const useCollectionOnce = <T = FirebaseFirestoreTypes.DocumentData>(
-  query?: FirebaseFirestoreTypes.Query<T> | null,
-  options?: OnceOptions
-): CollectionHook<T> => {
-  return useCollectionInternal<T>(false, query, options);
-};
-
-export const useCollectionData = <
-  T = FirebaseFirestoreTypes.DocumentData,
-  IDField extends string | undefined = undefined,
-  RefField extends string | undefined = undefined
->(
-  query?: FirebaseFirestoreTypes.Query<T> | null,
-  options?: DataOptions<T, IDField, RefField>
-): CollectionDataHook<T, IDField, RefField> => {
-  return useCollectionDataInternal<T, IDField, RefField>(true, query, options);
-};
-
-export const useCollectionDataOnce = <
-  T = FirebaseFirestoreTypes.DocumentData,
-  IDField extends string | undefined = undefined,
-  RefField extends string | undefined = undefined
->(
-  query?: FirebaseFirestoreTypes.Query<T> | null,
-  options?: OnceDataOptions<T, IDField, RefField>
-): CollectionDataHook<T, IDField, RefField> => {
-  return useCollectionDataInternal<T, IDField, RefField>(false, query, options);
-};
-
-const useCollectionInternal = <T = FirebaseFirestoreTypes.DocumentData>(
-  listen: boolean,
-  query?: FirebaseFirestoreTypes.Query<T> | null,
-  optionsProp?: Options & OnceOptions
+  optionsProp?: Options
 ) => {
   // we capture the options prop here once, as it is an object that is most likely not memoized
   // and thus would cause a "loop"-like re-execution of this hook
@@ -67,36 +32,21 @@ const useCollectionInternal = <T = FirebaseFirestoreTypes.DocumentData>(
       setValue(undefined);
       return;
     }
-    if (listen) {
-      const unsubscribe =
-        options && options.snapshotListenOptions
-          ? ref.current.onSnapshot(
-              options.snapshotListenOptions,
-              setValue,
-              setError
-            )
-          : ref.current.onSnapshot(setValue, setError);
+    const unsubscribe =
+      options && options.snapshotListenOptions
+        ? ref.current.onSnapshot(
+            options.snapshotListenOptions,
+            setValue,
+            setError
+          )
+        : ref.current.onSnapshot(setValue, setError);
 
-      return () => {
-        unsubscribe();
-      };
-    } else {
-      const getOptionsSource = options?.getOptions?.source;
-      ref.current
-        .get(
-          getOptionsSource != null
-            ? {
-                source: getOptionsSource,
-              }
-            : undefined
-        )
-        .then(setValue)
-        .catch(setError);
-    }
-    return undefined;
+    return () => {
+      unsubscribe();
+    };
     // we need to use ref.current here explicitly
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listen, options, ref.current, setError, setValue]);
+  }, [options, ref.current, setError, setValue]);
 
   return useMemo<CollectionHook<T>>(
     () => [value, loading, error],
@@ -104,41 +54,118 @@ const useCollectionInternal = <T = FirebaseFirestoreTypes.DocumentData>(
   );
 };
 
-const useCollectionDataInternal = <
+export const useCollectionOnce = <T = FirebaseFirestoreTypes.DocumentData>(
+  query?: FirebaseFirestoreTypes.Query<T> | null,
+  options?: Options & OnceOptions
+) => {
+  const { error, loading, reset, setError, setValue, value } = useLoadingValue<
+    FirebaseFirestoreTypes.QuerySnapshot<T>,
+    Error
+  >();
+  let effectActive = useRef(true);
+  const ref = useIsEqualRef<FirebaseFirestoreTypes.Query<T>>(query, reset);
+
+  const loadData = async (
+    queryArg?: FirebaseFirestoreTypes.Query<T> | null,
+    optionsArg?: Options & OnceOptions
+  ) => {
+    if (!queryArg) {
+      setValue(undefined);
+      return;
+    }
+
+    const getOptionsSource = optionsArg?.getOptions?.source;
+    try {
+      const result = await queryArg.get(
+        getOptionsSource != null
+          ? {
+              source: getOptionsSource,
+            }
+          : undefined
+      );
+      if (effectActive.current) {
+        setValue(result);
+      }
+    } catch (e) {
+      if (effectActive.current) {
+        setError(e as Error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    loadData(ref.current, options);
+
+    return () => {
+      effectActive.current = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ref.current]);
+
+  const resArray: CollectionOnceHook<T> = [
+    value,
+    loading,
+    error,
+    () => loadData(ref.current, options),
+  ];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(() => resArray, resArray);
+};
+
+export const useCollectionData = <
   T = FirebaseFirestoreTypes.DocumentData,
   IDField extends string | undefined = undefined,
   RefField extends string | undefined = undefined
 >(
-  listen: boolean,
   query?: FirebaseFirestoreTypes.Query<T> | null,
-  options?: DataOptions<T, IDField, RefField> &
-    OnceDataOptions<T, IDField, RefField>
+  options?: DataOptions<T, IDField, RefField>
 ): CollectionDataHook<T, IDField, RefField> => {
-  const idField = options ? options.idField : undefined;
-  const refField = options ? options.refField : undefined;
-  const transform = options ? options.transform : undefined;
-  const [snapshots, loading, error] = useCollectionInternal<T>(
-    listen,
-    query,
-    options
-  );
-  const values = useMemo(
-    () =>
-      (snapshots
-        ? snapshots.docs.map((doc) =>
-            snapshotToData<T, IDField, RefField>(
-              doc,
-              idField,
-              refField,
-              transform
-            )
-          )
-        : undefined) as Data<T, IDField, RefField>[],
-    [snapshots, idField, refField, transform]
-  );
+  const [snapshots, loading, error] = useCollection<T>(query, options);
+  const values = useGetValuesFromSnapshots(snapshots, options);
 
   return useMemo<CollectionDataHook<T, IDField, RefField>>(
     () => [values, loading, error],
     [values, loading, error]
+  );
+};
+
+export const useCollectionDataOnce = <
+  T = FirebaseFirestoreTypes.DocumentData,
+  IDField extends string | undefined = undefined,
+  RefField extends string | undefined = undefined
+>(
+  query?: FirebaseFirestoreTypes.Query<T> | null,
+  options?: DataOptions<T, IDField, RefField> &
+    OnceDataOptions<T, IDField, RefField>
+) => {
+  const [snapshots, loading, error] = useCollectionOnce<T>(query, options);
+  const values = useGetValuesFromSnapshots(snapshots, options);
+
+  return useMemo<CollectionDataOnceHook<T, IDField, RefField>>(
+    () => [values, loading, error],
+    [values, loading, error]
+  );
+};
+
+const useGetValuesFromSnapshots = <
+  T,
+  IDField extends string | undefined = undefined,
+  RefField extends string | undefined = undefined
+>(
+  snapshots?: FirebaseFirestoreTypes.QuerySnapshot<T>,
+  options?: DataOptions<T, IDField, RefField> &
+    OnceDataOptions<T, IDField, RefField>
+) => {
+  return useMemo(
+    () =>
+      snapshots?.docs.map((doc) =>
+        snapshotToData<T, IDField, RefField>(
+          doc,
+          options?.idField,
+          options?.refField,
+          options?.transform
+        )
+      ) as Data<T, IDField, RefField>[],
+    [snapshots, options?.idField, options?.refField, options?.transform]
   );
 };
