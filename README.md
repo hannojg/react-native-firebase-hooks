@@ -13,8 +13,25 @@ _Note:_ This assumes you have setup [react-native-firebase](https://rnfirebase.i
 ## Usage
 
 
-
 ### Example
+
+```tsx
+import React from 'react';
+import type { Product } from './types';
+import firestore from '@react-native-firebase/firestore';
+import { useCollectionData } from '@skillnation/react-native-firebase-hooks/firestore';
+
+export const App: React.FC = () => {
+  const [products, isLoading, error] = useCollectionData(
+    firestore().collection<Product>('products')
+  );
+
+  if (loading) return <LoadingComponent />
+  if (error) return <ErrorComponent error={error} />
+  return <ProductList products={products} />;
+};
+
+```
 
 ### Documentation
 
