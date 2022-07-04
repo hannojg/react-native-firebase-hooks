@@ -34,7 +34,7 @@ const isEqual = <T extends HasIsEqual<T>>(
   return bothNull || equal;
 };
 
-export const useIsEqualRef = <T extends HasIsEqual<T>>(
+export const useIsEqualRef = <T extends HasIsEqual<any>>(
   value: T | null | undefined,
   onChange?: () => void
 ): RefHook<T | null | undefined> => {
